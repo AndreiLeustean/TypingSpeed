@@ -1,0 +1,138 @@
+#textCard {
+    margin: auto;
+    margin-top: 140px;
+    width: 980px;
+    height: 100px;
+    overflow: hidden;
+    background-size: cover;
+    background-position: center;
+    background-color: #feffe4;
+    border-radius: 20px;
+    box-shadow: 10px 10px 5px #e7e3c5;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#userCard {
+    margin: auto;
+    margin-top: 50px;
+    width: 380px;
+    height: 80px;
+    overflow: hidden;
+    background-size: cover;
+    background-position: center;
+    background-color: #feffe4;
+    border-radius: 20px;
+    box-shadow: 10px 10px 5px #e7e3c5;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#textOfWords {
+    position: absolute;
+    top: 30px;
+    bottom: unset;
+    left: 126px;
+    font-size: 24px;
+    white-space: nowrap;
+}
+
+#userInput {
+    width: 90%;
+    padding: 10px 0;
+    background-color: transparent;
+    border: none;
+    border-radius: 5px;
+    font-size: 24px;
+    outline: none;
+    color: black;
+    text-align: left;
+}
+
+h1 {
+    color: #ffffff;
+}
+
+#title {
+    height: 10px;
+}
+
+#timer {
+    border-radius: 50%;
+    width: 80px;
+    height: 80px;
+    overflow: hidden;
+    background-color: #feffe4;
+    position: fixed;
+    bottom: 100px;
+    left: 25%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    color: black;
+    box-shadow: 10px 10px 5px #e7e3c5;
+    border: 5px solid #7d7354;
+    font-family: Arial, sans-serif;
+}
+
+#writtenWords {
+    border-radius: 50%;
+    width: 80px;
+    height: 80px;
+    overflow: hidden;
+    background-color: #feffe4;
+    position: fixed;
+    bottom: 100px;
+    left: 68%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    color: black;
+    box-shadow: 10px 10px 5px #e7e3c5;
+    border: 5px solid #7d7354;
+    font-family: Arial, sans-serif;
+}
+
+.large {
+    font-size: 2em;
+    line-height: 0.8em;
+}
+
+.small {
+    font-size: 0.7em;
+    font-weight: normal;
+}
+
+#instructions {
+    height: 65px;
+    background-color: #7d7354;
+    width: 1280px;
+    border-radius: 20px;
+    box-shadow: 10px 10px 5px #e7e3c5;
+    margin: auto;
+    text-align: center;
+}
+
+#gameOverMessage {
+    visibility: hidden;
+    position: absolute;
+    height: 200px;
+    width: 400px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 24px;
+    color: rgb(247, 247, 247);
+    background-color: #7d7354;
+    padding: 20px;
+    border-radius: 10px;
+    border: 5px solid #e7e3c5;
+}
