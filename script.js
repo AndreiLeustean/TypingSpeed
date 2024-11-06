@@ -1,242 +1,209 @@
-const DINOSAUR = document.getElementById('dinosaur');
-const currentScoreText = document.getElementById("score").textContent;
-const highestScoreText = document.getElementById("theHighestScore").textContent;
-const obstaclesDown = document.getElementsByClassName("obstaclesDown");
-const obstaclesUp = document.getElementsByClassName("obstaclesUp");
-const VERIFICATION_INTERVAL = 10;
-const GAME_HEIGHT = 120;
-const TEN_SECONDS = 100;
-const TWELVE_SECONDS = 120;
-const UPWARD = 0.1;
-const DOWNWARD = 0;
-const MILLISECOND_INTERVAL = 100;
-const OBSTACLE_START_POSITION = 350;
-const MINIMUM_OBSTACLE_SPACING = 12;
-const OBSTACLE_UPDATE_INTERVAL = 10;
-const LIFT_SPEED = 1.5;
-const DOWN_SPEED = 2;
-let gameActive = false;
-let restartGame = false;
-let dinosaurIsJumping = false;
-let score = 0;
-let lastObstacleScore = 0;
-let level = 0;
-let movementSpeed = 2;
-let timeBetweenObstacles = 25;
-let obstacleUpdateInterval;
-let highestScore = 0;
+const userInputField = document.getElementById('userInput');
+const displayTextField = document.getElementById('coloredText');
+const ONE_SECONDS = 1000;
+const ALL_WORDS = 300;
+const LAST_TEN_SECONDS = 10;
+const TIME_EXPIRED = 0;
+const INDEX_DIFFERENCE = 2;
+let lastKeyPressed;
+let remainingTime = 60;
+let completedWordsCount = 0;
+let isFirstLetter = true;
+let generatedTextWords = "";
+let currentWordIndex = 0;
+let typedText = "";
+let currentWord = "";
+let timingStarts = false;
+let firstAttempt = true;
+let gameActive = true;
+let intervalId;
+let isCurrentWordCorrect;
 
-function updateScore() {
-    setInterval(function () {
-        if (gameActive) {
-            ++score;
-            let lengthOfScore = (score + "").length;
-            let newTextScore = currentScoreText.slice(0, -lengthOfScore);
-            document.getElementById("score").innerHTML = newTextScore + score;
-            checkLevelUp();
-        }
-    }, MILLISECOND_INTERVAL);
-}
-
-function checkAndUpdateHighestScore() {
-    if (!gameActive && score !== 0) {
-        if (highestScore < score) {
-            highestScore = score;
-        }
-    }
-    let lengthOfScore = (highestScore + "").length;
-    let newTextHighestScore = highestScoreText.slice(0, -lengthOfScore);
-    document.getElementById("theHighestScore").innerHTML = newTextHighestScore + highestScore;
-    score = 0;
-}
-
-function checkLevelUp() {
-    if (score % TEN_SECONDS === 0 && score > 99) {
-        document.getElementById('levelUp').style.visibility = 'visible';
-        timeBetweenObstacles = Math.max(timeBetweenObstacles - 1, MINIMUM_OBSTACLE_SPACING);
-        ++level;
-        return true;
-    } else if (score % TWELVE_SECONDS === 0) {
-        document.getElementById('levelUp').style.visibility = 'hidden';
-        return false;
-    }
-}
-
-function jumpDinosaur() {
-    let heightOfTheJump = parseInt(window.getComputedStyle(DINOSAUR).top);
-    let jumpHeight = GAME_HEIGHT;
-    let jumpDirection = UPWARD;
-    let jumpSpeed = LIFT_SPEED;
-
-    jumpInterval = setInterval(function () {
-        dinosaurIsJumping = true;
-        if (jumpHeight === DOWNWARD) {
-            jumpDirection = DOWNWARD;
-        }
-        if (jumpDirection === UPWARD) {
-            jumpHeight -= jumpSpeed;
-            DINOSAUR.style.top = jumpHeight + 'px';
-        } else {
-            jumpSpeed = DOWN_SPEED;
-            jumpHeight += jumpSpeed;
-            DINOSAUR.style.top = jumpHeight + 'px';
-            if (jumpHeight === GAME_HEIGHT) {
-                clearInterval(jumpInterval);
-                dinosaurIsJumping = false;
-            }
-        }
-    }, VERIFICATION_INTERVAL);
-}
-
-let lastSpawnTime = 0;
-
-function spawnObstacle(timestamp) {
-    if (!gameActive) return;
-    if (!lastSpawnTime) {
-        lastSpawnTime = timestamp;
-    }
-    const timeSinceLastSpawn = timestamp - lastSpawnTime;
-
-    if (timeSinceLastSpawn >= timeBetweenObstacles * 100) {
-        if (level >= 2) {
-            let obstacle = getRandomInt(2);
-            if (obstacle === 1) {
-                createObstaclesUp();
-            } else {
-                createObstaclesDown();
-            }
-        } else {
-            createObstaclesDown();
-        }
-        lastSpawnTime = timestamp;
-    }
-    requestAnimationFrame(spawnObstacle);
-}
-
-
-
-function updateObstaclePosition() {
-    obstacleUpdateInterval = setInterval(function () {
-        changeObstaclePosition();
-        dinosaurHitsAnObstacle();
-    }, OBSTACLE_UPDATE_INTERVAL);
-}
-
-function createObstacle(type) {
-    const obstacle = document.createElement('div');
-    obstacle.classList.add(type);
-    obstacle.style.left = OBSTACLE_START_POSITION + 'px';
-    document.getElementById('dinosaurGame').appendChild(obstacle);
-}
-
-function createObstaclesDown() {
-    createObstacle('obstaclesDown');
-}
-
-function createObstaclesUp() {
-    createObstacle('obstaclesUp');
-}
-
-function changeObstaclePosition() {
-    changeObstaclePositionForClass('obstaclesDown', 'obstaclesUp');
-    changeObstaclePositionForClass('obstaclesUp', 'obstaclesDown');
-}
-
-function changeObstaclePositionForClass(obstacleClass, otherObstacles) {
-    const obstacles = Array.from(document.getElementsByClassName(obstacleClass));
-    let removedObstacle = false;
-
-    for (let i = 1; i < obstacles.length; ++i) {
-        let left = parseInt(window.getComputedStyle(obstacles[i]).left);
-        if (left <= -800) {
-            obstacles[i].remove();
-            removedObstacle = true;
-            break;
-        } else {
-            obstacles[i].style.left = (left - movementSpeed) + 'px';
-        }
-    }
-
-    if (removedObstacle) {
-        const secondaryObstacles = Array.from(document.getElementsByClassName(otherObstacles));
-        moveObstaclesLeft(obstacles, 42);
-        moveObstaclesLeft(secondaryObstacles, 42);
-    }
-}
-
-function moveObstaclesLeft(obstacleList, distance) {
-    for (let i = 1; i < obstacleList.length; ++i) {
-        if (obstacleList[i].parentNode) {
-            let left = parseInt(window.getComputedStyle(obstacleList[i]).left);
-            obstacleList[i].style.left = (left - distance) + 'px';
-        }
-    }
-}
-
-function dinosaurHitsAnObstacle() {
-    const dinosaurRect = DINOSAUR.getBoundingClientRect();
-    const obstacles = document.querySelectorAll('.obstaclesDown, .obstaclesUp');
-
-    for (let obstacle of obstacles) {
-        const obstacleRect = obstacle.getBoundingClientRect();
-        if (checkCollision(dinosaurRect, obstacleRect)) {
-            document.getElementById('gameOverMess').style.visibility = 'visible';
-            gameActive = false;
-            setNewInstructions();
-            clearInterval(obstacleUpdateInterval);
-            restartGame = true;
-            checkAndUpdateHighestScore();
-            return true;
-        }
-    }
-    return false;
-}
-
-function checkCollision(dinosaurRect, obstacleRect) {
-    return dinosaurRect.left < obstacleRect.right && dinosaurRect.right > obstacleRect.left &&
-        dinosaurRect.top < obstacleRect.bottom && dinosaurRect.bottom > obstacleRect.top;
-}
+const wordList = [
+    "apple ", "banana ", "cherry ", "date ", "elderberry ", "fig ", "grape ", "honeydew ", "kiwi ", "lemon ",
+    "mango ", "nectarine ", "orange ", "papaya ", "quince ", "raspberry ", "strawberry ", "tangerine ",
+    "ugli ", "valencia ", "watermelon ", "xigua ", "yellow ", "zucchini ", "avocado ", "blueberry ",
+    "cranberry ", "durian ", "eggplant ", "fennel ", "guava ", "hibiscus ", "jalapeno ", "kumquat ",
+    "lime ", "mulberry ", "nutmeg ", "olive ", "peach ", "plum ", "quinoa ", "radish ", "spinach ", "tomato ",
+    "yam ", "zest ", "almond ", "basil ", "carrot ", "dill ", "endive ", "fennel ", "ginger ", "horseradish ",
+    "iceberg ", "jicama ", "kale ", "lettuce ", "mushroom ", "nopales ", "oregano ", "parsley ", "quinoa ",
+    "rosemary ", "sage ", "thyme ", "udon ", "vinegar ", "wasabi ", "yam ", "ziti ", "asparagus ", "broccoli ",
+    "cauliflower ", "daikon ", "escarole ", "fiddlehead ", "garlic ", "herb ", "italian ", "japanese ",
+    "kohlrabi ", "leek ", "melon ", "nectar ", "okra ", "pear ", "quiche ", "rhubarb ", "spinach ", "taro ",
+    "uji ", "victor ", "wheat ", "xanthan ", "yogurt ", "zucchini ", "acai ", "blackberry ", "celery ",
+    "dragonfruit ", "elderflower ", "fig ", "goji ", "hibiscus ", "ivy ", "jackfruit ", "kiwi ", "lychee ",
+    "mango ", "nut ", "olive ", "pineapple ", "quassia ", "rose ", "straw ", "thyme ", "vine ", "water ",
+    "ximenia ", "yuzu ", "zebra ", "adzuki ", "beet ", "corn ", "dandelion ", "elder ", "fig ", "grapefruit ",
+    "hops ", "iris ", "jostaberry ", "kiwano ", "lime ", "mandarin ", "nectarine ", "onion ", "persimmon ",
+    "quackgrass ", "raspberry ", "seaweed ", "teff ", "ume ", "verbena ", "watercress ", "xigua ", "yarrow ",
+    "zaatar ", "apricot ", "broccoli ", "carrot ", "dulse ", "elderberry ", "fiddlehead ", "grape ", "hibiscus ",
+    "iris ", "japanese ", "kale ", "lettuce ", "mushroom ", "nopales ", "orange ", "pepper ", "quince ", "radish ",
+    "spinach ", "tangerine ", "ugni ", "vanilla ", "watermelon ", "xanthan ", "yam ", "zucchini ", "arugula ",
+    "brussels ", "chard ", "dandelion ", "eggplant ", "fig ", "grape ", "hibiscus ", "iceberg ", "jerusalem ",
+    "kiwifruit ", "lettuce ", "mushroom ", "nectarine ", "olive ", "pineapple ", "quinoa ", "radish ", "squash ",
+    "turnip ", "ube ", "victor ", "watercress ", "xylocarp ", "yuzu ", "zucchini ", "melon ", "broccoli ",
+    "lemonade ", "sesame ", "milkshake ", "popcorn ", "cheddar ", "blue cheese ", "straw ", "mushrooms ",
+    "cucumber ", "raspberry ", "lettuce ", "black ", "pepper ", "spinach ", "cereal ", "pizza ", "mango ",
+    "noodles ", "honey ", "ginger ", "yam ", "peppermint ", "walnut ", "gingerbread ", "milk ", "cream ",
+    "cinnamon ", "butter ", "garlic ", "beet ", "tomato ", "turmeric ", "carrot ", "honeydew ", "butternut ",
+    "squash ", "cilantro ", "parsley ", "oregano ", "thyme ", "basil ", "sage ", "thyme ", "mint ",
+    "tarragon ", "fennel ", "cumin ", "dill ", "paprika ", "chili ", "peanut ", "cashew ", "almond ",
+    "pine ", "hazelnut ", "pistachio ", "sunflower ", "sesame ", "pumpkin ", "watermelon ", "canola ",
+    "safflower ", "coconut ", "olive ", "avocado ", "peach ", "plum ", "pear ", "cherry ", "grapefruit ",
+    "lime ", "orange ", "tangerine ", "lemongrass ", "pineapple ", "pomegranate ", "banana ", "blueberry ",
+    "strawberry ", "kiwi ", "passionfruit ", "guava ", "papaya ", "fig ", "date ", "prune ", "raisin ",
+    "apricot ", "tomatillo ", "jalapeno ", "chili ", "habanero ", "serrano ", "poblano ", "bell ",
+    "carolina reaper ", "cayenne ", "szechuan ", "arbol ", "chipotle ", "pasilla ", "guajillo ",
+    "turkey ", "chicken ", "beef ", "pork ", "bacon ", "salmon ", "tuna ", "sardine ", "cod ", "halibut ",
+    "trout ", "tilapia ", "anchovy ", "shrimp ", "scallop ", "clam ", "oyster ", "mussel ", "crab ",
+    "lobster ", "squid ", "octopus ", "milk ", "cream ", "yogurt ", "butter ", "cheese ", "ice cream ",
+    "gelato ", "sorbet ", "popsicle ", "custard ", "pudding ", "egg ", "duck ", "goose ", "quail ", "ostrich ",
+    "emu ", "boar ", "venison ", "rabbit ", "kangaroo ", "alligator ", "frog ", "quail ", "pigeon ", "swan ",
+    "turducken ", "turkey ", "goose ", "grouse ", "pheasant ", "dove ", "chicken ", "cornish ", "hen ", "rooster "
+];
 
 function getRandomInt(max) {
     return Math.floor(Math.random() * max);
 }
 
-function setNewInstructions() {
-    document.getElementById('instructions').innerHTML = "Press space to restart the game.";
+function generateText() {
+    let text = "";
+    for (let i = 0; i < ALL_WORDS; ++i) {
+        text += wordList[getRandomInt(ALL_WORDS)];
+    }
+    generatedTextWords = text;
+    return text;
 }
 
-function startNewGame() {
-    for (let i = obstaclesDown.length - 1; i >= 0; --i) {
-        obstaclesDown[i].remove();
-    }
-    for (let i = obstaclesUp.length - 1; i >= 0; --i) {
-        obstaclesUp[i].remove();
-    }
-    document.getElementById('gameOverMess').style.visibility = 'hidden';
-    score = 0;
-    level = 0;
-    movementSpeed = 2;
-    timeBetweenObstacles = 25;
-    gameActive = true;
-    dinosaurIsJumping = false;
-    updateObstaclePosition();
+function displayGeneratedText() {
+    document.getElementById("textOfWords").innerHTML = generateText();
 }
 
-updateObstaclePosition();
 
-document.addEventListener('keydown', function (event) {
-    if (event.key === " " && restartGame) {
-        startNewGame();
-        restartGame = false;
-        requestAnimationFrame(spawnObstacle);
-    } else if (event.key === " ") {
-        if (!dinosaurIsJumping) {
-            jumpDinosaur();
+function updateColorBasedOnMatch(typedText, currentWord) {
+    const element = document.querySelector('#textOfWords');
+    isCurrentWordCorrect = true;
+    const text = element.innerText;
+    let updatedText = "";
+    let lengthOfTextWord = getWordLength(text);
+    if (lengthOfTextWord > currentWordIndex) {
+        for (let i = 0; i < typedText.length; ++i) {
+            if (typedText[i] === currentWord[i]) {
+                updatedText += '<span style="color: green;">' + text[i] + '</span>';
+            } else {
+                updatedText += '<span style="color: red;">' + text[i] + '</span>';
+                isCurrentWordCorrect = false;
+            }
         }
-        if (!gameActive) {
-            updateScore();
-            gameActive = true;
-            requestAnimationFrame(spawnObstacle);
+        updatedText += text.substring(typedText.length);
+        element.innerHTML = updatedText;
+    }
+    ++currentWordIndex;
+}
+
+function addToTypedText(letter) {
+    typedText += letter;
+}
+
+function updateCurrentWord() {
+    currentWord += generatedTextWords[currentWordIndex];
+}
+
+function getWordLength(text) {
+    let length = 0;
+    while (text[length] !== " " && length < text.length) {
+        ++length;
+    }
+    return length;
+}
+
+function resetStateAfterWordCheck(wordLength) {
+    generatedTextWords = generatedTextWords.slice(wordLength);
+    document.getElementById("userInput").value = "";
+    document.getElementById("textOfWords").innerHTML = generatedTextWords;
+    typedText = "";
+    currentWord = "";
+    currentWordIndex = 0;
+}
+
+function validateWord() {
+    const wordLength = getWordLength(generatedTextWords) + 1;
+    if (getWordLength(generatedTextWords) === getWordLength(typedText)
+        && isCurrentWordCorrect) {
+        ++completedWordsCount;
+        resetStateAfterWordCheck(wordLength);
+    } else {
+        resetStateAfterWordCheck(wordLength);
+    }
+}
+
+function timeLapse() {
+    if (timingStarts) {
+        intervalId = setInterval(function () {
+            --remainingTime;
+            if (remainingTime < LAST_TEN_SECONDS) {
+                document.getElementById("largeTimer")
+                    .style.color = "red";
+            }
+            if (remainingTime <= TIME_EXPIRED) {
+                clearInterval(intervalId);
+                remainingTime = TIME_EXPIRED;
+                gameActive = false;
+                displayGameOverMessage();
+            }
+            document.getElementById("largeTimer")
+                .innerHTML = remainingTime;
+        }, ONE_SECONDS);
+    }
+}
+
+function stopTimeLapse() {
+    clearInterval(intervalId);
+}
+
+
+function completedWords() {
+    document.getElementById("numberOfWords").innerHTML = completedWordsCount;
+}
+
+function displayGameOverMessage() {
+    document.getElementById("textGameOver").innerText =
+        "You managed to write " + completedWordsCount + " words in one minute"
+    document.getElementById("gameOverMessage").style.visibility = "visible";
+    restartGame();
+}
+
+function restartGame() {
+    document.getElementById('restartButton')
+        .addEventListener('click', function (event) {
+            event.preventDefault();
+            location.reload();
+        });
+}
+displayGeneratedText();
+
+userInputField.addEventListener('keydown', function (event) {
+    if (gameActive) {
+        timingStarts = true;
+        const inputLetter = event.key;
+        if (inputLetter !== "Backspace") {
+            addToTypedText(inputLetter);
+            updateCurrentWord();
         }
+        if (inputLetter === "Backspace") {
+            typedText = typedText.slice(0, -1);
+            currentWord = currentWord.slice(0, -1);
+            updateColorBasedOnMatch(typedText, currentWord);
+            currentWordIndex -= INDEX_DIFFERENCE;
+        } else if (inputLetter === " ") {
+            validateWord();
+        } else {
+            updateColorBasedOnMatch(typedText, currentWord);
+        }
+        if (firstAttempt) {
+            timeLapse();
+        }
+        firstAttempt = false;
+        completedWords();
     }
 });
