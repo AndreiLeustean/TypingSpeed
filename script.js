@@ -1,15 +1,15 @@
-const userInputField = document.getElementById('userInput');
-const displayTextField = document.getElementById('coloredText');
 const ONE_SECONDS = 1000;
 const ALL_WORDS = 300;
 const LAST_TEN_SECONDS = 10;
 const TIME_EXPIRED = 0;
 const INDEX_DIFFERENCE = 2;
+const userInputField = document.getElementById('userInput');
+const displayTextField = document.getElementById('coloredText');
 let lastKeyPressed;
 let remainingTime = 60;
 let completedWordsCount = 0;
 let isFirstLetter = true;
-let generatedTextWords = "";
+let text = "";
 let currentWordIndex = 0;
 let typedText = "";
 let currentWord = "";
@@ -67,18 +67,15 @@ function getRandomInt(max) {
 }
 
 function generateText() {
-    let text = "";
     for (let i = 0; i < ALL_WORDS; ++i) {
         text += wordList[getRandomInt(ALL_WORDS)];
     }
-    generatedTextWords = text;
     return text;
 }
 
 function displayGeneratedText() {
     document.getElementById("textOfWords").innerHTML = generateText();
 }
-
 
 function updateColorBasedOnMatch(typedText, currentWord) {
     const element = document.querySelector('#textOfWords');
@@ -106,7 +103,7 @@ function addToTypedText(letter) {
 }
 
 function updateCurrentWord() {
-    currentWord += generatedTextWords[currentWordIndex];
+    currentWord += text[currentWordIndex];
 }
 
 function getWordLength(text) {
@@ -118,21 +115,19 @@ function getWordLength(text) {
 }
 
 function resetStateAfterWordCheck(wordLength) {
-    generatedTextWords = generatedTextWords.slice(wordLength);
+    text = text.slice(wordLength);
     document.getElementById("userInput").value = "";
-    document.getElementById("textOfWords").innerHTML = generatedTextWords;
+    document.getElementById("textOfWords").innerHTML = text;
     typedText = "";
     currentWord = "";
     currentWordIndex = 0;
 }
 
 function validateWord() {
-    const wordLength = getWordLength(generatedTextWords) + 1;
-    if (getWordLength(generatedTextWords) === getWordLength(typedText)
+    const wordLength = getWordLength(text) + 1;
+    if (getWordLength(text) === getWordLength(typedText)
         && isCurrentWordCorrect) {
         ++completedWordsCount;
-        resetStateAfterWordCheck(wordLength);
-    } else {
         resetStateAfterWordCheck(wordLength);
     }
 }
@@ -161,7 +156,6 @@ function stopTimeLapse() {
     clearInterval(intervalId);
 }
 
-
 function completedWords() {
     document.getElementById("numberOfWords").innerHTML = completedWordsCount;
 }
@@ -180,6 +174,7 @@ function restartGame() {
             location.reload();
         });
 }
+
 displayGeneratedText();
 
 userInputField.addEventListener('keydown', function (event) {
