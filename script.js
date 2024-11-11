@@ -128,8 +128,8 @@ function validateWord() {
     if (getWordLength(text) === getWordLength(typedText)
         && isCurrentWordCorrect) {
         ++completedWordsCount;
-        resetStateAfterWordCheck(wordLength);
     }
+    resetStateAfterWordCheck(wordLength);
 }
 
 function timeLapse() {
