@@ -1,4 +1,4 @@
-const ONE_SECONDS = 1000;
+const ONE_SECOND = 1000;
 const ALL_WORDS = 300;
 const LAST_TEN_SECONDS = 10;
 const TIME_EXPIRED = 0;
@@ -148,7 +148,7 @@ function timeLapse() {
             }
             document.getElementById("largeTimer")
                 .innerHTML = remainingTime;
-        }, ONE_SECONDS);
+        }, ONE_SECOND);
     }
 }
 
@@ -162,7 +162,7 @@ function completedWords() {
 
 function displayGameOverMessage() {
     document.getElementById("textGameOver").innerText =
-        "You managed to write " + completedWordsCount + " words in one minute"
+        `You managed to write ${completedWordsCount} words in one minute`
     document.getElementById("gameOverMessage").style.visibility = "visible";
     restartGame();
 }
